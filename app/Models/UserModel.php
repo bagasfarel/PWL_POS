@@ -22,4 +22,8 @@ class UserModel extends Model
     {
         return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
     }
+    public function barang():HasMany
+    {
+        return $this->hasMany(StockModel::class, 'stock_id', 'stock_id');
+    }
 }
