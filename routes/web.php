@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LevelController;
@@ -32,6 +33,16 @@ use Monolog\Level;
 //Route::get('/user/ubah/{id}', [UserController::class, 'ubah']);
 //Route::put('/user/ubah_simpan/{id}', [UserController::class, 'ubah_simpan']);
 //Route::get('/user/hapus/{id}', [UserController::class, 'hapus']);
+
+Route::pattern('id', '[0-9]+');
+
+Route::get('login', [AuthController::class, 'login'])->name('login');
+Route::post('login', [AuthController::class, 'postlogin']);
+Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
+
+Route::middleware(['auth'])->group(function () {
+    
+
 Route::get('/', [WelcomeController::class, 'index']);
 
 Route::group(['prefix' => 'user'], function () {
@@ -67,6 +78,9 @@ Route::group(['prefix' => 'level'], function () {
     Route::put('/{id}', [LevelController::class, 'update']);     // menyimpan perubahan data level
     Route::delete('/{id}', [LevelController::class, 'destroy']); // menghapus data level
 });
+
+
+
 Route::group(['prefix' => 'kategori'], function () {
     Route::get('/', [KategoriController::class, 'index']);          // menampilkan halaman awal kategori
     Route::post('/list', [KategoriController::class, 'list']);      // menampilkan data kategori dalam bentuk json untuk datatables
@@ -114,4 +128,5 @@ Route::group(['prefix' => 'barang'], function () {
     Route::get('/{id}/delete_ajax', [BarangController::class, 'confirm_ajax']);
     Route::delete('/{id}/delete_ajax', [BarangController::class, 'delete_ajax']);
     Route::delete('/{id}', [BarangController::class, 'destroy']); // menghapus data barang
+});
 });
