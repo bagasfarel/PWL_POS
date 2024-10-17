@@ -103,6 +103,10 @@ Route::middleware(['authorize:ADM'])->group(function () {
         Route::put('/kategori/{id}/update_ajax', [KategoriController::class, 'update_ajax']);
         Route::get('/kategori/{id}/delete_ajax', [KategoriController::class, 'confirm_ajax']);
         Route::delete('/kategori/{id}/delete_ajax', [KategoriController::class, 'delete_ajax']);
+        Route::get('/kategori/import', [KategoriController::class, 'import']);
+        Route::post('/kategori/import_ajax', [KategoriController::class, 'import_ajax']);
+        Route::get('/kategori/export_excel', [KategoriController::class, 'export_excel']); // export excel
+        Route::get('/kategori/export_pdf', [KategoriController::class, 'export_pdf']); // export pdf
         Route::delete('/kategori/{id}', [KategoriController::class, 'destroy']); // menghapus data kategori
     });
 

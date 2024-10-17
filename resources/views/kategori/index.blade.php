@@ -4,11 +4,12 @@
 data-keyboard="false" data-width="75%" aria-hidden="true"></div>
     <div class="card card-outline card-primary">
         <div class="card-header">
-            <h3 class="card-title">{{ $page->title }}</h3>
+            <h3 class="card-title">Daftar Kategori</h3>
             <div class="card-tools">
-                <a class="btn btn-sm btn-primary mt-1" href="{{ url('kategori/create') }}">Tambah</a>
-                <button onclick="modalAction('{{ url('/kategori/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah
-                    Ajax</button>
+                <button onclick="modalAction('{{ url('/barang/import') }}')" class="btn btn-info">Import Barang</button>
+                <a href="{{ url('/barang/export_excel') }}" class="btn btn-primary"><i class="fa fa-file-excel"></i> Export Barang</a>
+                <a href="{{ url('/barang/export_pdf') }}" class="btn btn-warning"><i class="fa fa-file-pdf"></i> Export Barang</a>
+                <button onclick="modalAction('{{ url('/barang/create_ajax') }}')" class="btn btn-success">Tambah Data(Ajax)</button>
             </div>
         </div>
         <div class="card-body">
@@ -35,7 +36,8 @@ data-keyboard="false" data-width="75%" aria-hidden="true"></div>
                     </div>
                 </div>
             </div> --}}
-            <table class="table table-bordered table-striped table-hover table-sm" id="table_kategori">
+            {{-- <table class="table table-bordered table-striped table-hover table-sm" id="table_kategori"> --}}
+            <table class="table table-bordered table-sm table-striped table-hover" id="table-kategori">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -47,6 +49,7 @@ data-keyboard="false" data-width="75%" aria-hidden="true"></div>
             </table>
         </div>
     </div>
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" data-backdrop="static" data-keyboard="false" data-width="75%"></div>
 @endsection
 @push('css')
 @endpush
@@ -59,29 +62,31 @@ function modalAction(url = '') {
             });
         }
 
-        var dataKategori;
+        var tableKategori;
         $(document).ready(function() {
-            dataKategori = $('#table_kategori').DataTable({
+            tableKategori = $('#table-kategori').DataTable({
                 // serverSide: true, jika ingin menggunakan server side processing
+                processing: true,
                 serverSide: true,
                 ajax: {
                     "url": "{{ url('kategori/list') }}",
                     "dataType": "json",
-                    "type": "POST"
-                    // tidak perlu data dibawah karena tidak ada filter
-                    // "data": function (d) {
-                    //     d.kategori_id = $('#kategori_id').val();
-                    // }
+                    "type": "POST",
+                    "data": function(d) {
+                        d.filter_kategori = $('.filter_kategori').val();
+                    }
                 },
                 columns: [{
                     // nomor urut dari laravel datatable addIndexColumn()
-                    data: "DT_RowIndex",
+                    data: "kategori_id",
                     className: "text-center",
+                    width: "5%",
                     orderable: false,
                     searchable: false
                 }, {
                     data: "kategori_kode",
                     className: "",
+                    width: "10%",
                     // orderable: true, jika ingin kolom ini bisa diurutkan
                     orderable: true,
                     // searchable: true, jika ingin kolom ini bisa dicari
@@ -89,11 +94,13 @@ function modalAction(url = '') {
                 }, {
                     data: "kategori_nama",
                     className: "",
+                    width: "37%",
                     orderable: true,
                     searchable: true
                 }, {
                     data: "aksi",
-                    className: "",
+                    className: "text-center",
+                    width: "14%",
                     orderable: false,
                     searchable: false
                 }]
@@ -102,6 +109,14 @@ function modalAction(url = '') {
             // $('#kategori_id').on('change',function(){
             //     dataKategori.ajax.reload();
             // });
+            $('#table-kategori_filter input').unbind().bind().on('keyup', function(e) {
+                if (e.keyCode == 13) { // enter key
+                    tableKategori.search(this.value).draw();
+                }
+            });
+            $('.filter_kategori').change(function() {
+                tableKategori.draw();
+            });
         });
     </script>
 @endpush
