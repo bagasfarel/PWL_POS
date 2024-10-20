@@ -7,7 +7,9 @@ use App\Models\User;
 use App\Models\UserModel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Yajra\DataTables\DataTablesEditor;
@@ -200,7 +202,7 @@ class UserController extends Controller
      // Ambil data user dalam bentuk json untuk datatables
      public function list(Request $request)
      {
-         $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
+         $users = UserModel::select('user_id', 'username', 'nama','foto', 'level_id')
              ->with('level');
  
          // filter data user berdasarkan level_id
@@ -220,8 +222,7 @@ class UserController extends Controller
                      '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm
                      (\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>'; */
 
-                     $btn = '<button onclick="modalAction(\''.url('/user/' . $user->user_id .
-                     '/show_ajax') .'\')" class="btn btn-info btn-sm">Detail</button> ';
+                     $btn = '<a href="' . url('/user/' . $user->user_id) . '" class="btn btn-info btn-sm">Detail</a> ';
                      $btn .= '<button onclick="modalAction(\''.url('/user/' . $user->user_id .
                      '/edit_ajax').'\')" class="btn btn-warning btn-sm">Edit</button> ';
                      $btn .= '<button onclick="modalAction(\''.url('/user/' . $user->user_id .
@@ -263,6 +264,50 @@ class UserController extends Controller
             'level_id'  => $request->level_id
         ]);
         return redirect('/user')->with('success', 'Data user berhasil disimpan');
+    }
+    public function store_ajax(Request $request)
+    {
+        // cek apakah request berupa ajax
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'level_id'  => 'required|integer',
+                'username'  => 'required|string|min:3|unique:m_user,username',
+                'nama'      => 'required|string|max:100',
+                'password'  => 'required|min:6',
+                'foto'      => 'image|mimes:jpeg,png,jpg|max:2048'
+            ];
+            // use Illuminate\Support\Facades\Validator;
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'    => false, // response status, false: error/gagal, true: berhasil
+                    'message'   => 'Validasi Gagal',
+                    'msgField'  => $validator->errors(), // pesan error validasi
+                ]);
+            }
+            // // Define the file name using the user's id and the file extension
+            // $fileExtension = $request->file('foto')->getClientOriginalExtension();
+            // $fileName = 'profile_' . Auth::user()->user_id . '.' . $fileExtension;
+            // // Check if an existing profile picture exists and delete it
+            // $oldFile = 'profile_pictures/' . $fileName;
+            // if (Storage::disk('public')->exists($oldFile)) {
+            //     Storage::disk('public')->delete($oldFile);
+            // }
+            // // Store the new file with the user id as the file name
+            // $path = $request->file('foto')->storeAs('images', $fileName, 'public');
+            // $request['foto'] = $path;
+            // UserModel::create($request->all());
+            // Define the file name using the user's id and the file extension
+            $fileName = time() . $request->file('foto')->getClientOriginalExtension();
+            $path = $request->file('foto')->storeAs('images', $fileName);
+            $request['foto'] = '/storage/' . $path;
+            UserModel::create($request->all());
+            return response()->json([
+                'status'    => true,
+                'message'   => 'Data user berhasil disimpan'
+            ]);
+        }    redirect('/');
     }
     // Menampilkan detail user
     public function show(string $id)
@@ -334,35 +379,7 @@ class UserController extends Controller
         return view('user.create_ajax')
         ->with('level', $level);
     }
-    public function store_ajax(Request $request) {
-        // cek apakah request berupa ajax
-        if($request->ajax() || $request->wantsJson()){
-            $rules =[
-                'level_id' => 'required|integer',
-                'username' => 'required|string|min:3|unique:m_user,username',
-                'nama'     => 'required|string|max:100',
-                'password' => 'required|min:6'
-            ];
-
-            // use Illuminate\Support\Facades\Validator;
-            $validator = Validator::make($request->all(), $rules);
-
-            if($validator->fails()){
-                return response()->json([
-                'status' => false, // response status, false: error/gagal, true: berhasil
-                'message' => 'Validasi Gagal',
-                'msgField' => $validator->errors(), // pesan error validasi
-            ]);
-        }
-
-        UserModel::create($request->all());
-        return response()->json([
-            'status' => true,
-            'message'=> 'Data user berhasil disimpan'
-        ]);
-        }
-        redirect('/');
-    }
+    
     // Menampilkan halaman form edit user ajax
     public function edit_ajax(string $id)
     {
@@ -379,7 +396,8 @@ class UserController extends Controller
                 'level_id' => 'required|integer',
                 'username' => 'required|max:20|unique:m_user,username,' . $id . ',user_id',
                 'nama' => 'required|max:100',
-                'password' => 'nullable|min:6|max:20'
+                'password' => 'nullable|min:6|max:20',
+                'foto'     => 'image|mimes:jpeg,png,jpg|max:2048'
             ];
             // use Illuminate\Support\Facades\Validator;
             $validator = Validator::make($request->all(), $rules);
@@ -394,6 +412,25 @@ class UserController extends Controller
             if ($check) {
                 if (!$request->filled('password')) { // jika password tidak diisi, maka hapus dari request
                     $request->request->remove('password');
+                }
+                // // Define the file name using the user's id and the file extension
+                // $fileExtension = $request->file('foto')->getClientOriginalExtension();
+                // $fileName = 'profile_' . Auth::user()->user_id . '.' . $fileExtension;
+                // // Check if an existing profile picture exists and delete it
+                // $oldFile = 'profile_pictures/' . $fileName;
+                // if (Storage::disk('public')->exists($oldFile)) {
+                //     Storage::disk('public')->delete($oldFile);
+                // }
+                // // Store the new file with the user id as the file name
+                // $path = $request->file('foto')->storeAs('profile_pictures', $fileName, 'public');
+                // $request['foto'] = $path;
+                // Define the file name using the user's id and the file extension
+                $fileName = time() . $request->file('foto')->getClientOriginalExtension();
+                $path = $request->file('foto')->storeAs('images', $fileName);
+                $request['foto'] = '/storage/' . $path;
+
+                if (!$request->filled('foto')) { // jika password tidak diisi, maka hapus dari request 
+                    $request->request->remove('foto');
                 }
                 $check->update($request->all());
                 return response()->json([
