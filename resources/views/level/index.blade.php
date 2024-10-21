@@ -75,7 +75,7 @@
                 },
                 columns: [{
                     data: "leve_kode",
-                    className: "",
+                    className: "text-center",
                     width: "10%",
                     // orderable: true, jika ingin kolom ini bisa diurutkan
                     orderable: true,

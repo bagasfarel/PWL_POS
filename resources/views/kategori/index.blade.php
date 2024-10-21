@@ -37,7 +37,7 @@ data-keyboard="false" data-width="75%" aria-hidden="true"></div>
                 </div>
             </div> --}}
             {{-- <table class="table table-bordered table-striped table-hover table-sm" id="table_kategori"> --}}
-            <table class="table table-bordered table-sm table-striped table-hover" id="table-kategori">
+            <table class="table table-bordered table-sm table-striped table-hover" id="table_kategori">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -64,7 +64,7 @@ function modalAction(url = '') {
 
         var tableKategori;
         $(document).ready(function() {
-            tableKategori = $('#table-kategori').DataTable({
+            tableKategori = $('#table_kategori').DataTable({
                 // serverSide: true, jika ingin menggunakan server side processing
                 processing: true,
                 serverSide: true,
@@ -78,7 +78,7 @@ function modalAction(url = '') {
                 },
                 columns: [{
                     // nomor urut dari laravel datatable addIndexColumn()
-                    data: "kategori_id",
+                    data: "DT_RowIndex",
                     className: "text-center",
                     width: "5%",
                     orderable: false,
@@ -109,7 +109,7 @@ function modalAction(url = '') {
             // $('#kategori_id').on('change',function(){
             //     dataKategori.ajax.reload();
             // });
-            $('#table-kategori_filter input').unbind().bind().on('keyup', function(e) {
+            $('#table_kategori_filter input').unbind().bind().on('keyup', function(e) {
                 if (e.keyCode == 13) { // enter key
                     tableKategori.search(this.value).draw();
                 }
